@@ -19,11 +19,13 @@ var karma = require('gulp-karma');
 
 var srcFolder = '../src/main';
 var testsFolder = '../src/test';
-var devTargetFolder = '../../public/';
+var devTargetFolder = '../../public';
+var devImagesFolder = devTargetFolder + '/images';
 var devLibFolder = devTargetFolder + '/lib';
 
 var config = {
     indexSource: srcFolder + '/index.html',
+    imagesSource: srcFolder + '/images/**/*',
     htmlSource: [
         srcFolder + '/**/*.html'
     ],
@@ -57,7 +59,7 @@ var devConfig = {
     libJs: [
         devLibFolder + '/jquery.js',
         devLibFolder + '/angular.js',
-        devLibFolder + '/angular-ui-route.js',
+        devLibFolder + '/angular-ui-router.js',
         devLibFolder + '/**/*.js'
     ],
     libCss: [
@@ -88,12 +90,16 @@ function fillIndex(indexSource, sourcesToFill, indexFinalDestination) {
 //==================================== developer environment ====================================
 
 gulp.task('dev.clean', function(callback) {
-    return del(devTargetFolder, callback);
+    return del(devTargetFolder, {force: true}, callback);
 });
 
 gulp.task('dev.bower2pack', function(cb) {
     var bowerSources = devConfig.bowerJs.concat(devConfig.bowerCss);
     return bower2lib(bowerSources, devLibFolder);
+});
+
+gulp.task('dev.images2pack', function(cb) {
+    return copy(config.imagesSource, devImagesFolder)
 });
 
 gulp.task('dev.js2pack', function() {
@@ -199,7 +205,7 @@ gulp.task('dev.watch', function() {
 
 gulp.task('dev', gulp.series(
     'dev.clean',
-    gulp.parallel('dev.bower2pack', 'dev.js2pack', 'dev.less2pack', 'dev.html2pack'),
+    gulp.parallel('dev.images2pack', 'dev.bower2pack', 'dev.js2pack', 'dev.less2pack', 'dev.html2pack'),
     'dev.index2pack',
     gulp.parallel('dev.browserSync.start', 'dev.watch')
 ));

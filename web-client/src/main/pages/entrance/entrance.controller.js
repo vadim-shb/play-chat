@@ -5,10 +5,10 @@ angular.module('webClient').controller('EntranceController', ['$scope', '$state'
         return $scope.user && $scope.room;
     };
 
-    $scope.onEnter = function() {
+    $scope.enterRoom = function() {
         if ($scope.user && $scope.room) {
             //todo: may be ws enter signal. think later.
-            $state.go('/chat-room/user/' + $scope.user + '/room/' + $scope.room)
+            $state.go('chatRoom', {user: $scope.user ,room: $scope.room});
         }
     };
 }]);
