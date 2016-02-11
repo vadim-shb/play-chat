@@ -1,7 +1,8 @@
 package actors
 
+import akka.actor.Status.{Failure, Success}
 import akka.actor._
-import domain.{IncomeTextMessage, Handshake}
+import domain.{Handshake, IncomeTextMessage}
 import protocol.WsContainer
 
 class ConnectionActor(out: ActorRef) extends Actor {
@@ -13,7 +14,8 @@ class ConnectionActor(out: ActorRef) extends Actor {
       wsContainer.msgType match {
         case "HANDSHAKE" => {
           val handshake = Handshake.parse(wsContainer.data)
-//          context.system.
+          roomActor = getRoomActor(handshake.room)
+          roomActor ! out
         }
         case "SEND_TEXT_MESSAGE" => {
           val incomeTextMessage = IncomeTextMessage.parse(wsContainer.data)
@@ -24,6 +26,12 @@ class ConnectionActor(out: ActorRef) extends Actor {
     }
   }
 
+  private def getRoomActor(room: String) : ActorRef= {
+    context.system.actorSelection("chat-room/" + room).resolveOne().onComplete {
+      case Success(actorRef) => {}
+      case Failure(ex) => {}
+    }
+  }
 }
 
 object ConnectionActor {
