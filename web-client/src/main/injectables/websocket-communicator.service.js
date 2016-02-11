@@ -10,7 +10,7 @@ angular.module('webClient').factory('wsCommunicator', function() {
         ws.onmessage = function(evt) {
             var message = JSON.parse(evt.data);
             if (message.msgType == 'BROADCAST_TEXT_MESSAGE' && typeof callbacks.receiveMessage === 'function') {
-                callbacks.receiveMessage(message.data);
+                callbacks.receiveMessage(JSON.parse(message.data));
             }
         };
         setTimeout(function() {

@@ -18,7 +18,6 @@ class ConnectionActor(out: ActorRef) extends Actor {
 
   @throws[Exception](classOf[Exception])
   override def postStop() = {
-    println("======== finita ========")
     cachedRoomActor.foreach(_ ! (Constants.disconnectMessage, out))
   }
 
@@ -79,12 +78,7 @@ class ConnectionActor(out: ActorRef) extends Actor {
   private def registerRoomInChatRoot(chatRootActor: ActorRef, room: String): Unit = {
     for (
       roomActor <- (chatRootActor ? (room, out)).mapTo[ActorRef]
-    ) yield {
-      cachedRoomActor = Option(roomActor)
-      println("===================================")
-      println(roomActor.path)
-      println("===================================")
-    }
+    ) yield cachedRoomActor = Option(roomActor)
   }
 
 }

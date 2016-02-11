@@ -11,12 +11,17 @@ angular.module('webClient').controller('ChatRoomController', ['$scope', '$state'
     $scope.roomMessages = [];
 
     wsCommunicator.setReceiveMessageCallback(function(messageObj) {
-        roomMessages.push(messageObj);
+        $scope.roomMessages.push({
+            color: messageObj.author === $scope.user ? 'blue' : 'black',
+            text: messageObj.message
+        });
+        $scope.$apply(); //fixme: incapsulate digest in wsCommunicator
     });
 
     wsCommunicator.setCloseConnectionCallback(function() {
        console.log('connection closed')
     });
+
     wsCommunicator.connect('localhost:9000', $scope.room, $scope.user);
 
 
