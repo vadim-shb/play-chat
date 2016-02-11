@@ -1,11 +1,26 @@
 package actors
 
-import akka.actor.Status.{Failure, Success}
 import akka.actor._
-import domain.{Handshake, IncomeTextMessage}
+import akka.pattern.ask
+import config.Constants
+import config.Constants._
+import domain.{OutcomeTextMessage, Handshake, IncomeTextMessage}
 import protocol.WsContainer
 
+import scala.util.{Failure, Success}
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class ConnectionActor(out: ActorRef) extends Actor {
+
+  var cachedRoomActor : Option[ActorRef] = Option.empty
+  var cachedUser: Option[String] = Option.empty
+
+
+  @throws[Exception](classOf[Exception])
+  override def postStop() = {
+    println("======== finita ========")
+    cachedRoomActor.foreach(_ ! (Constants.disconnectMessage, out))
+  }
 
   override def receive = {
     case msg: String => {
@@ -14,28 +29,68 @@ class ConnectionActor(out: ActorRef) extends Actor {
       wsContainer.msgType match {
         case "HANDSHAKE" => {
           val handshake = Handshake.parse(wsContainer.data)
-          roomActor = getRoomActor(handshake.room)
-          roomActor ! out
+          cachedUser = Option(handshake.user)
+          sendConnectionToRoomActor(handshake.room)
         }
         case "SEND_TEXT_MESSAGE" => {
           val incomeTextMessage = IncomeTextMessage.parse(wsContainer.data)
-
+          //Protocol require handshake before interchange messages
+          for {
+            roomActor <- cachedRoomActor
+            user <- cachedUser
+          } yield roomActor ! OutcomeTextMessage(user, incomeTextMessage.message)
         }
       }
-      out ! "I received your message: " + msg
     }
   }
 
-  private def getRoomActor(room: String) : ActorRef= {
-    context.system.actorSelection("chat-room/" + room).resolveOne().onComplete {
-      case Success(actorRef) => {}
-      case Failure(ex) => {}
+  private def sendConnectionToRoomActor(room: String) = {
+    context.system.actorSelection("akka://application/user/chat-rooms-root/" + room).resolveOne().onComplete {
+      case Success(roomActor) => {
+        cachedRoomActor = Option(roomActor)
+        roomActor ! out
+      }
+      case Failure(ex) => {
+        if (ex.getClass.getSimpleName == "ActorNotFound") {
+            createRoomActorAndSendConnectionToIt(room)
+        }
+      }
     }
   }
+
+  private def createRoomActorAndSendConnectionToIt(room: String) = {
+    context.system.actorSelection("akka://application/user/chat-rooms-root/").resolveOne().onComplete {
+      case Success(chatRootActor) => {
+        registerRoomInChatRoot(chatRootActor, room)
+      }
+      case Failure(ex) => { //todo: create chat-root actor on startup time
+        if (ex.getClass.getSimpleName == "ActorNotFound") {
+            createChatRootAndCreateRoomWithConnectionInIt(room)
+        }
+      }
+    }
+  }
+
+  private def createChatRootAndCreateRoomWithConnectionInIt(room: String) = {
+    val chatRootActor = context.system.actorOf(ChatRootActor.props(), "chat-rooms-root")
+    registerRoomInChatRoot(chatRootActor, room)
+  }
+
+  private def registerRoomInChatRoot(chatRootActor: ActorRef, room: String): Unit = {
+    for (
+      roomActor <- (chatRootActor ? (room, out)).mapTo[ActorRef]
+    ) yield {
+      cachedRoomActor = Option(roomActor)
+      println("===================================")
+      println(roomActor.path)
+      println("===================================")
+    }
+  }
+
 }
 
 object ConnectionActor {
 
-  def props(out: ActorRef) = Props(new ConnectionActor(out))
+  def props(out: ActorRef) = Props(classOf[ConnectionActor], out)
 
 }

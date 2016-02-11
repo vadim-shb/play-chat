@@ -14,7 +14,11 @@ angular.module('webClient').controller('ChatRoomController', ['$scope', '$state'
         roomMessages.push(messageObj);
     });
 
+    wsCommunicator.setCloseConnectionCallback(function() {
+       console.log('connection closed')
+    });
     wsCommunicator.connect('localhost:9000', $scope.room, $scope.user);
+
 
     $scope.sendMessage = function() {
         wsCommunicator.sendMessage($scope.message);

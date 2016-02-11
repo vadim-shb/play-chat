@@ -29,7 +29,10 @@ angular.module('webClient').factory('wsCommunicator', function() {
     }
 
     function setCloseConnectionCallback(callback) {
-        ws.onclose = callback;
+        callbacks.close = callback;
+        if (ws) {
+            ws.onclose = callback;
+        }
     }
 
     function disconnect() {
@@ -48,6 +51,6 @@ angular.module('webClient').factory('wsCommunicator', function() {
         disconnect: disconnect,
         sendMessage: sendMessage,
         setReceiveMessageCallback: setReceiveMessageCallback,
-        setCloseConnectionCallback : setCloseConnectionCallback
+        setCloseConnectionCallback: setCloseConnectionCallback
     }
 });
