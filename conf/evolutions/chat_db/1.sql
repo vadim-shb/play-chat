@@ -1,3 +1,7 @@
+# Messages vault schema
+
+# --- !Ups
+
 CREATE TABLE messages (
   id      BIGSERIAL     NOT NULL PRIMARY KEY,
   room    VARCHAR(1000) NOT NULL,
@@ -6,3 +10,7 @@ CREATE TABLE messages (
 );
 
 CREATE INDEX messages_room on messages(room);
+
+# --- !Downs
+
+DROP TABLE messages;
