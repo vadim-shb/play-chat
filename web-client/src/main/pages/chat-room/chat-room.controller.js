@@ -22,8 +22,7 @@ angular.module('webClient').controller('ChatRoomController', ['$scope', '$state'
        console.log('connection closed')
     });
 
-    wsCommunicator.connect('localhost:9000', $scope.room, $scope.user);
-
+    wsCommunicator.connect(window.location.host, $scope.room, $scope.user);
 
     $scope.sendMessage = function() {
         wsCommunicator.sendMessage($scope.message);
