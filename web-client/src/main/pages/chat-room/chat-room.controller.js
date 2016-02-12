@@ -13,7 +13,7 @@ angular.module('webClient').controller('ChatRoomController', ['$scope', '$state'
     wsCommunicator.setReceiveMessageCallback(function(messageObj) {
         $scope.roomMessages.push({
             color: messageObj.author === $scope.user ? 'blue' : 'black',
-            text: messageObj.message
+            text: '[' + messageObj.author + ']: ' + messageObj.message
         });
         $scope.$apply(); //fixme: incapsulate digest in wsCommunicator
     });
@@ -26,6 +26,7 @@ angular.module('webClient').controller('ChatRoomController', ['$scope', '$state'
 
     $scope.sendMessage = function() {
         wsCommunicator.sendMessage($scope.message);
+        $scope.message = ''; //fixme: if message not receive?
     }
 
 }]);
