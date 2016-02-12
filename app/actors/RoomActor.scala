@@ -9,12 +9,10 @@ import scalikejdbc._
 
 import scala.collection.mutable
 
-class RoomActor(firstConnection: ActorRef) extends Actor with DbConnected {
+class RoomActor() extends Actor with DbConnected {
 
   val connections = new mutable.ListBuffer[ActorRef]
-  connections += firstConnection
   var cachedRoomName: Option[String] = Option.empty
-
 
   override def receive = {
 
@@ -65,6 +63,6 @@ class RoomActor(firstConnection: ActorRef) extends Actor with DbConnected {
 
 object RoomActor {
 
-  def props(connection: ActorRef) = Props(classOf[RoomActor], connection)
+  def props = Props[RoomActor]
 
 }

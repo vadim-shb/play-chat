@@ -21,7 +21,7 @@ angular.module('webClient').factory('wsCommunicator', function() {
                     user: user
                 })
             }));
-        }, 1000); //fixme: hardcode 1 sec is hack. Optimize it later
+        }, 300); //fixme: hardcode 1 sec is hack. Optimize it later
     }
 
     function setReceiveMessageCallback(callback) {

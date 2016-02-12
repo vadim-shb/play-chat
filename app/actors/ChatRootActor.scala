@@ -7,8 +7,9 @@ class ChatRootActor extends Actor {
 
   override def receive = {
     case (room: String, connection: ActorRef) => {
-      val newRoom = context.actorOf(RoomActor.props(connection), room) //fixme: check if child actor already exists. Possible race condition.
+      val newRoom = context.actorOf(RoomActor.props, room) //fixme: check if child actor already exists. Possible race condition.
       newRoom ! (Constants.setRoomName, room)
+      newRoom ! connection
       sender ! newRoom
     }
   }
